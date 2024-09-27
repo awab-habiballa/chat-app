@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+
 import User from "../models/user.model.js";
 import { errorHandler } from "../util/errorHandler.js";
 import generateTokenAndSetCookie from "../util/generateToken.js";
@@ -45,7 +46,32 @@ export const signup = async (req, res, next) => {
 };
 
 export const login = async (req, res, next) => {
-  console.log("Login user");
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username });
+
+    if (!user) return next(errorHandler(405, "User not found"));
+
+    const isCorrectPassword = bcrypt.compareSync(
+      password,
+      user?.password || ""
+    );
+
+    if (!isCorrectPassword)
+      return next(errorHandler(401, "Invalid credentials!"));
+
+    generateTokenAndSetCookie(user._id, res);
+
+    res.status(201).json({
+      _id: user._id,
+      fullName: user.fullName,
+      username: user.username,
+      profilePic: user.profilePic,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const logout = async (req, res, next) => {
