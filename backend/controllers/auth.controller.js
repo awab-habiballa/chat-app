@@ -63,7 +63,7 @@ export const login = async (req, res, next) => {
 
     generateTokenAndSetCookie(user._id, res);
 
-    res.status(201).json({
+    res.status(200).json({
       _id: user._id,
       fullName: user.fullName,
       username: user.username,
@@ -74,6 +74,11 @@ export const login = async (req, res, next) => {
   }
 };
 
-export const logout = async (req, res, next) => {
-  console.log("logout user");
+export const logout = (req, res, next) => {
+  try {
+    res.clearCookie("access_token");
+    res.status(200).json("Logged out successfully");
+  } catch (error) {
+    next(error);
+  }
 };
